@@ -1,0 +1,50 @@
+name: Terraform CD Pipeline
+
+on:
+  push:
+    branches:
+      - main  # Runs only when changes are pushed to the main branch
+  workflow_dispatch:  # Allows manual execution
+
+jobs:
+  terraform:
+    name: Deploy Infrastructure
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_REGION: us-east-1  # Modify as needed
+      TF_VAR_aws_region: us-east-1  # Terraform variable for AWS region
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: latest
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Initialize Terraform
+        run: terraform init -backend=true
+
+      - name: Validate Terraform Configuration
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan -var-file=terraform.tfvars
+
+      - name: Manual Approval (For Production)
+        if: github.ref == 'refs/heads/main'
+        uses: hmarr/auto-approve-action@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Apply Terraform Changes
+        run: terraform apply -auto-approve tfplan
