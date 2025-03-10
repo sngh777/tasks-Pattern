@@ -1,0 +1,49 @@
+name: Terraform CD Pipeline
+
+on:
+  push:
+    branches:
+      - main  # Runs only when changes are pushed to the main branch
+  workflow_dispatch:  # Allows manual execution
+
+jobs:
+  terraform:
+    name: Deploy Infrastructure
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_REGION: us-east-1
+      TF_VAR_aws_region: us-east-1  # Pass region as a Terraform variable
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: latest
+
+      - name: Configure AWS Profile
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          profile: sandbox  # Use the AWS CLI profile
+          role-to-assume: arn:aws:sts::847068433460:assumed-role/AWSReservedSSO_AWSAdministratorAccess_32e455a75ec338cc/abhinav.nsingh@pattern.com
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Verify AWS Credentials
+        run: aws sts get-caller-identity
+
+      - name: Initialize Terraform
+        run: terraform init -backend=true
+
+      - name: Validate Terraform Configuration
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan -var-file=terraform.tfvars
+
+      - name: Apply Terraform Changes
+        if: github.ref == 'refs/heads/main'
+        environment: production  # Requires manual approval in GitHub Environments
+        run: terraform apply -auto-approve tfplan
