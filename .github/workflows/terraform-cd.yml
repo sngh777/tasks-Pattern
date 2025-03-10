@@ -54,7 +54,7 @@ jobs:
           aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY --profile sandbox
           
       - name: Initialize Terraform
-        run: terraform init -backend=true
+        run: terraform init 
 
       - name: Validate Terraform Configuration
         run: terraform validate
