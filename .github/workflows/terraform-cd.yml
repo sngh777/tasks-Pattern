@@ -13,7 +13,8 @@ jobs:
 
     env:
       AWS_REGION: us-east-1  # Modify as needed
-      TF_VAR_aws_region: us-east-1  # Terraform variable for AWS region
+      AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+      TF_VAR_aws_region: us-east-1 # Terraform variable for AWS region
 
     steps:
       - name: Checkout Repository
