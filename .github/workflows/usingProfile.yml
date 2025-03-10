@@ -27,7 +27,7 @@ jobs:
       - name: Configure AWS Profile
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          profile: sandbox  # Use the AWS CLI profile
+        
           role-to-assume: arn:aws:sts::847068433460:assumed-role/AWSReservedSSO_AWSAdministratorAccess_32e455a75ec338cc/abhinav.nsingh@pattern.com
           aws-region: ${{ env.AWS_REGION }}
 
